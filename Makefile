@@ -1,3 +1,5 @@
+check: test
+
 include node_modules/make-node/main.mk
 
 

@@ -1,5 +1,5 @@
 {
-  "name": "oauth2orize",
+  "name": "@pirxpilot/oauth2orize",
   "version": "1.12.0",
   "description": "OAuth 2.0 authorization server toolkit for Node.js.",
   "keywords": [
@@ -26,10 +26,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git://github.com/jaredhanson/oauth2orize.git"
-  },
-  "bugs": {
-    "url": "https://github.com/jaredhanson/oauth2orize/issues"
+    "url": "git+https://github.com/pirxpilot/oauth2orize.git"
   },
   "funding": {
     "type": "github",

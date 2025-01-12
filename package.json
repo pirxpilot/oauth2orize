@@ -42,7 +42,7 @@
   "main": "./lib",
   "dependencies": {
     "debug": "~4",
-    "uid2": "0.0.x"
+    "ufid": "~1"
   },
   "devDependencies": {
     "chai": "2.x.x",

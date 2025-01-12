@@ -1,29 +1,32 @@
+const { before, describe, it } = require('node:test');
+const { expect } = require('chai');
+
 var chai = require('chai')
   , clientCredentials = require('../../lib/exchange/clientCredentials');
 
 
 describe('exchange.clientCredentials', function() {
-  
+
   it('should be named client_credentials', function() {
     expect(clientCredentials(function(){}).name).to.equal('client_credentials');
   });
-  
+
   it('should throw if constructed without a issue callback', function() {
     expect(function() {
       clientCredentials();
     }).to.throw(TypeError, 'oauth2orize.clientCredentials exchange requires an issue callback');
   });
-  
+
   describe('issuing an access token', function() {
     var response, err;
 
-    before(function(done) {
+    before(function(_, done) {
       function issue(client, done) {
         if (client.id !== 'c123') { return done(new Error('incorrect client argument')); }
-        
+
         return done(null, 's3cr1t')
       }
-      
+
       chai.connect.use(clientCredentials(issue))
         .req(function(req) {
           req.user = { id: 'c123', name: 'Example' };
@@ -35,28 +38,28 @@ describe('exchange.clientCredentials', function() {
         })
         .dispatch();
     });
-    
+
     it('should respond with headers', function() {
       expect(response.getHeader('Content-Type')).to.equal('application/json');
       expect(response.getHeader('Cache-Control')).to.equal('no-store');
       expect(response.getHeader('Pragma')).to.equal('no-cache');
     });
-    
+
     it('should respond with body', function() {
       expect(response.body).to.equal('{"access_token":"s3cr1t","token_type":"Bearer"}');
     });
   });
-  
+
   describe('issuing an access token and refresh token', function() {
     var response, err;
 
-    before(function(done) {
+    before(function(_, done) {
       function issue(client, done) {
         if (client.id !== 'c223') { return done(new Error('incorrect client argument')); }
-        
+
         return done(null, 's3cr1t', 'getANotehr')
       }
-      
+
       chai.connect.use(clientCredentials(issue))
         .req(function(req) {
           req.user = { id: 'c223', name: 'Example' };
@@ -68,28 +71,28 @@ describe('exchange.clientCredentials', function() {
         })
         .dispatch();
     });
-    
+
     it('should respond with headers', function() {
       expect(response.getHeader('Content-Type')).to.equal('application/json');
       expect(response.getHeader('Cache-Control')).to.equal('no-store');
       expect(response.getHeader('Pragma')).to.equal('no-cache');
     });
-    
+
     it('should respond with body', function() {
       expect(response.body).to.equal('{"access_token":"s3cr1t","refresh_token":"getANotehr","token_type":"Bearer"}');
     });
   });
-  
+
   describe('issuing an access token and params', function() {
     var response, err;
 
-    before(function(done) {
+    before(function(_, done) {
       function issue(client, done) {
         if (client.id !== 'c523') { return done(new Error('incorrect client argument')); }
-        
+
         return done(null, 's3cr1t', { 'expires_in': 3600 })
       }
-      
+
       chai.connect.use(clientCredentials(issue))
         .req(function(req) {
           req.user = { id: 'c523', name: 'Example' };
@@ -101,28 +104,28 @@ describe('exchange.clientCredentials', function() {
         })
         .dispatch();
     });
-    
+
     it('should respond with headers', function() {
       expect(response.getHeader('Content-Type')).to.equal('application/json');
       expect(response.getHeader('Cache-Control')).to.equal('no-store');
       expect(response.getHeader('Pragma')).to.equal('no-cache');
     });
-    
+
     it('should respond with body', function() {
       expect(response.body).to.equal('{"access_token":"s3cr1t","expires_in":3600,"token_type":"Bearer"}');
     });
   });
-  
+
   describe('issuing an access token, null refresh token, and params', function() {
     var response, err;
 
-    before(function(done) {
+    before(function(_, done) {
       function issue(client, done) {
         if (client.id !== 'c323') { return done(new Error('incorrect client argument')); }
-        
+
         return done(null, 's3cr1t', null, { 'expires_in': 3600 })
       }
-      
+
       chai.connect.use(clientCredentials(issue))
         .req(function(req) {
           req.user = { id: 'c323', name: 'Example' };
@@ -134,28 +137,28 @@ describe('exchange.clientCredentials', function() {
         })
         .dispatch();
     });
-    
+
     it('should respond with headers', function() {
       expect(response.getHeader('Content-Type')).to.equal('application/json');
       expect(response.getHeader('Cache-Control')).to.equal('no-store');
       expect(response.getHeader('Pragma')).to.equal('no-cache');
     });
-    
+
     it('should respond with body', function() {
       expect(response.body).to.equal('{"access_token":"s3cr1t","expires_in":3600,"token_type":"Bearer"}');
     });
   });
-  
+
   describe('issuing an access token, refresh token, and params with token_type', function() {
     var response, err;
 
-    before(function(done) {
+    before(function(_, done) {
       function issue(client, done) {
         if (client.id !== 'c423') { return done(new Error('incorrect client argument')); }
-        
+
         return done(null, 's3cr1t', 'blahblag', { 'token_type': 'foo', 'expires_in': 3600 })
       }
-      
+
       chai.connect.use(clientCredentials(issue))
         .req(function(req) {
           req.user = { id: 'c423', name: 'Example' };
@@ -167,30 +170,30 @@ describe('exchange.clientCredentials', function() {
         })
         .dispatch();
     });
-    
+
     it('should respond with headers', function() {
       expect(response.getHeader('Content-Type')).to.equal('application/json');
       expect(response.getHeader('Cache-Control')).to.equal('no-store');
       expect(response.getHeader('Pragma')).to.equal('no-cache');
     });
-    
+
     it('should respond with body', function() {
       expect(response.body).to.equal('{"access_token":"s3cr1t","refresh_token":"blahblag","token_type":"foo","expires_in":3600}');
     });
   });
-  
+
   describe('issuing an access token based on scope', function() {
     function issue(client, scope, done) {
       if (client.id !== 'c123') { return done(new Error('incorrect client argument')); }
       if (scope.length !== 1) { return done(new Error('incorrect scope argument')); }
       if (scope[0] !== 'read') { return done(new Error('incorrect scope argument')); }
-      
+
       return done(null, 's3cr1t')
     }
-    
+
     var response, err;
 
-    before(function(done) {
+    before(function(_, done) {
       chai.connect.use(clientCredentials(issue))
         .req(function(req) {
           req.user = { id: 'c123', name: 'Example' };
@@ -202,31 +205,31 @@ describe('exchange.clientCredentials', function() {
         })
         .dispatch();
     });
-    
+
     it('should respond with headers', function() {
       expect(response.getHeader('Content-Type')).to.equal('application/json');
       expect(response.getHeader('Cache-Control')).to.equal('no-store');
       expect(response.getHeader('Pragma')).to.equal('no-cache');
     });
-    
+
     it('should respond with body', function() {
       expect(response.body).to.equal('{"access_token":"s3cr1t","token_type":"Bearer"}');
     });
   });
-  
+
   describe('issuing an access token based on array of scopes', function() {
     function issue(client, scope, done) {
       if (client.id !== 'c123') { return done(new Error('incorrect client argument')); }
       if (scope.length !== 2) { return done(new Error('incorrect scope argument')); }
       if (scope[0] !== 'read') { return done(new Error('incorrect scope argument')); }
       if (scope[1] !== 'write') { return done(new Error('incorrect scope argument')); }
-      
+
       return done(null, 's3cr1t')
     }
-    
+
     var response, err;
 
-    before(function(done) {
+    before(function(_, done) {
       chai.connect.use(clientCredentials(issue))
         .req(function(req) {
           req.user = { id: 'c123', name: 'Example' };
@@ -238,31 +241,31 @@ describe('exchange.clientCredentials', function() {
         })
         .dispatch();
     });
-    
+
     it('should respond with headers', function() {
       expect(response.getHeader('Content-Type')).to.equal('application/json');
       expect(response.getHeader('Cache-Control')).to.equal('no-store');
       expect(response.getHeader('Pragma')).to.equal('no-cache');
     });
-    
+
     it('should respond with body', function() {
       expect(response.body).to.equal('{"access_token":"s3cr1t","token_type":"Bearer"}');
     });
   });
-  
+
   describe('issuing an access token based on scope and body', function() {
     function issue(client, scope, body, done) {
       if (client.id !== 'c123') { return done(new Error('incorrect client argument')); }
       if (scope.length !== 1) { return done(new Error('incorrect scope argument')); }
       if (scope[0] !== 'read') { return done(new Error('incorrect scope argument')); }
       if (body.audience !== 'https://www.example.com/') { return done(new Error('incorrect body argument')); }
-      
+
       return done(null, 's3cr1t')
     }
-    
+
     var response, err;
 
-    before(function(done) {
+    before(function(_, done) {
       chai.connect.use(clientCredentials(issue))
         .req(function(req) {
           req.user = { id: 'c123', name: 'Example' };
@@ -274,22 +277,22 @@ describe('exchange.clientCredentials', function() {
         })
         .dispatch();
     });
-    
+
     it('should respond with headers', function() {
       expect(response.getHeader('Content-Type')).to.equal('application/json');
       expect(response.getHeader('Cache-Control')).to.equal('no-store');
       expect(response.getHeader('Pragma')).to.equal('no-cache');
     });
-    
+
     it('should respond with body', function() {
       expect(response.body).to.equal('{"access_token":"s3cr1t","token_type":"Bearer"}');
     });
   });
-  
+
   describe('issuing an access token based on authInfo', function() {
     var response, err;
 
-    before(function(done) {
+    before(function(_, done) {
       function issue(client, scope, body, authInfo, done) {
         if (client.id !== 'c123') { return done(new Error('incorrect client argument')); }
         if (scope.length !== 1) { return done(new Error('incorrect scope argument')); }
@@ -323,15 +326,15 @@ describe('exchange.clientCredentials', function() {
       expect(response.body).to.equal('{"access_token":"s3cr1t","token_type":"Bearer"}');
     });
   });
-  
+
   describe('not issuing an access token', function() {
     var response, err;
 
-    before(function(done) {
+    before(function(_, done) {
       function issue(client, done) {
         return done(null, false)
       }
-      
+
       chai.connect.use(clientCredentials(issue))
         .req(function(req) {
           req.user = { id: 'cUN', name: 'Example' };
@@ -343,7 +346,7 @@ describe('exchange.clientCredentials', function() {
         })
         .dispatch();
     });
-    
+
     it('should error', function() {
       expect(err).to.be.an.instanceOf(Error);
       expect(err.constructor.name).to.equal('TokenError');
@@ -352,15 +355,15 @@ describe('exchange.clientCredentials', function() {
       expect(err.status).to.equal(403);
     });
   });
-  
+
   describe('encountering an error while issuing an access token', function() {
     var response, err;
 
-    before(function(done) {
+    before(function(_, done) {
       function issue(client, done) {
         return done(new Error('something is wrong'));
       }
-      
+
       chai.connect.use(clientCredentials(issue))
         .req(function(req) {
           req.user = { id: 'cXXX', name: 'Example' };
@@ -372,21 +375,21 @@ describe('exchange.clientCredentials', function() {
         })
         .dispatch();
     });
-    
+
     it('should error', function() {
       expect(err).to.be.an.instanceOf(Error);
       expect(err.message).to.equal('something is wrong');
     });
   });
-  
+
   describe('encountering an exception while issuing an access token', function() {
     var response, err;
 
-    before(function(done) {
+    before(function(_, done) {
       function issue(client, done) {
         throw new Error('something was thrown')
       }
-      
+
       chai.connect.use(clientCredentials(issue))
         .req(function(req) {
           req.user = { id: 'cTHROW', name: 'Example' };
@@ -398,21 +401,21 @@ describe('exchange.clientCredentials', function() {
         })
         .dispatch();
     });
-    
+
     it('should error', function() {
       expect(err).to.be.an.instanceOf(Error);
       expect(err.message).to.equal('something was thrown');
     });
   });
-  
+
   describe('handling a request without a body', function() {
     var response, err;
 
-    before(function(done) {
+    before(function(_, done) {
       function issue(client, done) {
         return done(null, '.ignore')
       }
-      
+
       chai.connect.use(clientCredentials(issue))
         .req(function(req) {
           req.user = { id: 'c123', name: 'Example' };
@@ -423,7 +426,7 @@ describe('exchange.clientCredentials', function() {
         })
         .dispatch();
     });
-    
+
     it('should error', function() {
       expect(err).to.be.an.instanceOf(Error);
       expect(err.message).to.equal('OAuth2orize requires body parsing. Did you forget app.use(express.bodyParser())?');
@@ -433,7 +436,7 @@ describe('exchange.clientCredentials', function() {
   describe('handling a request where scope format is not string', function () {
     var response, err;
 
-    before(function (done) {
+    before(function (_, done) {
       function issue(client, done) {
         return done(null, '.ignore')
       }
@@ -457,22 +460,22 @@ describe('exchange.clientCredentials', function() {
       expect(err.code).to.equal('invalid_request');
       expect(err.status).to.equal(400);
     });
-  });  
-  
+  });
+
   describe('with scope separator option', function() {
     function issue(client, scope, done) {
       if (client.id !== 'c123') { return done(new Error('incorrect client argument')); }
       if (scope.length !== 2) { return done(new Error('incorrect scope argument')); }
       if (scope[0] !== 'read') { return done(new Error('incorrect scope argument')); }
       if (scope[1] !== 'write') { return done(new Error('incorrect scope argument')); }
-      
+
       return done(null, 's3cr1t')
     }
-    
+
     describe('issuing an access token based on scope', function() {
       var response, err;
 
-      before(function(done) {
+      before(function(_, done) {
         chai.connect.use(clientCredentials({ scopeSeparator: ',' }, issue))
           .req(function(req) {
             req.user = { id: 'c123', name: 'Example' };
@@ -484,33 +487,33 @@ describe('exchange.clientCredentials', function() {
           })
           .dispatch();
       });
-    
+
       it('should respond with headers', function() {
         expect(response.getHeader('Content-Type')).to.equal('application/json');
         expect(response.getHeader('Cache-Control')).to.equal('no-store');
         expect(response.getHeader('Pragma')).to.equal('no-cache');
       });
-    
+
       it('should respond with body', function() {
         expect(response.body).to.equal('{"access_token":"s3cr1t","token_type":"Bearer"}');
       });
     });
   });
-  
+
   describe('with multiple scope separator option', function() {
     function issue(client, scope, done) {
       if (client.id !== 'c123') { return done(new Error('incorrect client argument')); }
       if (scope.length !== 2) { return done(new Error('incorrect scope argument')); }
       if (scope[0] !== 'read') { return done(new Error('incorrect scope argument')); }
       if (scope[1] !== 'write') { return done(new Error('incorrect scope argument')); }
-      
+
       return done(null, 's3cr1t')
     }
-    
+
     describe('issuing an access token based on scope separated by space', function() {
       var response, err;
 
-      before(function(done) {
+      before(function(_, done) {
         chai.connect.use(clientCredentials({ scopeSeparator: [' ', ','] }, issue))
           .req(function(req) {
             req.user = { id: 'c123', name: 'Example' };
@@ -522,22 +525,22 @@ describe('exchange.clientCredentials', function() {
           })
           .dispatch();
       });
-    
+
       it('should respond with headers', function() {
         expect(response.getHeader('Content-Type')).to.equal('application/json');
         expect(response.getHeader('Cache-Control')).to.equal('no-store');
         expect(response.getHeader('Pragma')).to.equal('no-cache');
       });
-    
+
       it('should respond with body', function() {
         expect(response.body).to.equal('{"access_token":"s3cr1t","token_type":"Bearer"}');
       });
     });
-    
+
     describe('issuing an access token based on scope separated by comma', function() {
       var response, err;
 
-      before(function(done) {
+      before(function(_, done) {
         chai.connect.use(clientCredentials({ scopeSeparator: [' ', ','] }, issue))
           .req(function(req) {
             req.user = { id: 'c123', name: 'Example' };
@@ -549,13 +552,13 @@ describe('exchange.clientCredentials', function() {
           })
           .dispatch();
       });
-    
+
       it('should respond with headers', function() {
         expect(response.getHeader('Content-Type')).to.equal('application/json');
         expect(response.getHeader('Cache-Control')).to.equal('no-store');
         expect(response.getHeader('Pragma')).to.equal('no-cache');
       });
-    
+
       it('should respond with body', function() {
         expect(response.body).to.equal('{"access_token":"s3cr1t","token_type":"Bearer"}');
       });
@@ -565,13 +568,13 @@ describe('exchange.clientCredentials', function() {
   describe('with user property option issuing an access token', function() {
     var response, err;
 
-    before(function(done) {
+    before(function(_, done) {
       function issue(client, done) {
         if (client.id !== 'c123') { return done(new Error('incorrect client argument')); }
-        
+
         return done(null, 's3cr1t')
       }
-      
+
       chai.connect.use(clientCredentials({ userProperty: 'client' }, issue))
         .req(function(req) {
           req.client = { id: 'c123', name: 'Example' };
@@ -583,13 +586,13 @@ describe('exchange.clientCredentials', function() {
         })
         .dispatch();
     });
-  
+
     it('should respond with headers', function() {
       expect(response.getHeader('Content-Type')).to.equal('application/json');
       expect(response.getHeader('Cache-Control')).to.equal('no-store');
       expect(response.getHeader('Pragma')).to.equal('no-cache');
     });
-  
+
     it('should respond with body', function() {
       expect(response.body).to.equal('{"access_token":"s3cr1t","token_type":"Bearer"}');
     });

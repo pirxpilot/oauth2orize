@@ -44,13 +44,11 @@
   ],
   "main": "./lib",
   "dependencies": {
+    "debug": "2.x.x",
     "uid2": "0.0.x",
-    "utils-merge": "1.x.x",
-    "debug": "2.x.x"
+    "utils-merge": "1.x.x"
   },
   "devDependencies": {
-    "make-node": "0.3.x",
-    "mocha": "2.x.x",
     "chai": "2.x.x",
     "chai-connect-middleware": "0.3.x",
     "chai-oauth2orize-grant": "0.3.x"

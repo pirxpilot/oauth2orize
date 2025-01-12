@@ -1,6 +1,6 @@
 {
   "name": "@pirxpilot/oauth2orize",
-  "version": "1.12.0",
+  "version": "2.0.0",
   "description": "OAuth 2.0 authorization server toolkit for Node.js.",
   "keywords": [
     "oauth",

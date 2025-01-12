@@ -1,3 +1,13 @@
+
+2.0.0 / 2025-01-12
+==================
+
+ * renamed fork to @pirxpilot/oauth2orize
+ * used ufid instead of uid2
+ * remove utils-merge dependency
+ * upgrade debug to ~4
+ * replace mocha with node:test
+
 # Changelog
 All notable changes to this project will be documented in this file.
 

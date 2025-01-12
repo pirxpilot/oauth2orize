@@ -2,7 +2,7 @@
 [![Build Status][build-image]][build-url]
 [![Dependency Status][deps-image]][deps-url]
 
-# @pirxpilot/connect-session
+# @pirxpilot/oauth2orize
 
 This is a fork of the [oauth2orize] with the following changes:
 - relaxed and updated dependencies
